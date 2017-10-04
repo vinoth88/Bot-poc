@@ -18,7 +18,7 @@ var leverage_buy = [2, 3, 4, 5];
 
 // Setup Restify Server
 var server = restify.createServer();
-server.listen(process.env.port || process.env.PORT || 3978, function() {
+server.listen(process.env.port || process.env.PORT || 3978,function() {
   console.log('%s listening to %s', server.name, server.url);
 });
 
@@ -70,12 +70,12 @@ console.log(arr);
             var temp = " ";
             for (var k in available.result) {
 
-              temp = temp + [k] + '    ' + available.result[k] + "              ";
+              temp = temp + [k] + '    ' + available.result[k] + '\n\n';
             }
 
 
 
-            reply.text('Balance in Dollar' + data.result.eb + '   ' + 'Balance in bitcoin' + doc.result.eb + 'Available balances' + temp);
+            reply.text('Balance in Dollar' + data.result.eb + '\n\n' + 'Balance in bitcoin' + doc.result.eb + '\n\n'+'Available balance' + '\n\n'+ temp);
             session.send(reply);
 
           });
