@@ -3,17 +3,23 @@ require('dotenv-extended').load();
 
 var builder = require('botbuilder');
 var restify = require('restify');
+const KrakenClient = require('./kraken');
+
+const secret = 'pu/SU+ZgW6ceZuNoovnhDlbF7NPaYn2QbovLGWOfmK20lncgOoUKwGofldLIvfOpk5iQs2XHnH6bl2k0lnKwOQ=='; // API Key
+const key = 'GeIiSp+TLvTaCgQ76q93wVn1JpubCbClbK2YkZ9xmH+5HAy2vbb+HRDg'; // API Private Key
+
+const kraken = new KrakenClient(key, secret);
 
 // Setup Restify Server
 var server = restify.createServer();
-server.listen(process.env.PORT, function () {
+server.listen(process.env.port || process.env.PORT || 3978,'127.0.0.1',function () {
     console.log('%s listening to %s', server.name, server.url);
 });
 
 // Create connector and listen for messages
 var connector = new builder.ChatConnector({
-    appId: '7c5571c3-b5d8-46e9-9a02-0b393c4274c8',
-    appPassword: 'EG50dhcEG3YgcYZWBggojmn'
+    appId: process.env.MICROSOFT_APP_ID,
+    appPassword: process.env.MICROSOFT_APP_PASSWORD
 });
 server.post('/api/messages', connector.listen());
 
@@ -27,31 +33,42 @@ var bot = new builder.UniversalBot(connector, function (session) {
     var text = session.message.text.toLocaleLowerCase();
 
     console.log('[' + session.message.address.conversation.id + '] Message received: ' + text);
+var temp= session.message.text;
 
-    switch (text) {
-        case 'show me a hero card':
-            reply.text('Sample message with a HeroCard attachment')
-                .addAttachment(new builder.HeroCard(session)
-                    .title('Sample Hero Card')
-                    .text('Displayed in the DirectLine client'));
-            break;
+if( temp=="status")
+     kraken.api('TradeBalance', function(err, data) {
+       if (err) {
+        throw err;
+        }
 
-        case 'send me a botframework image':
-            reply.text('Sample message with an Image attachment')
-                .addAttachment({
-                    contentUrl: 'https://docs.microsoft.com/en-us/bot-framework/media/how-it-works/architecture-resize.png',
-                    contentType: 'image/png',
-                    name: 'BotFrameworkOverview.png'
-                });
+         kraken.api('TradeBalance',{asset:'XXBT'} ,function(err, doc){
+           if (err) {
+            throw err;
+            }
 
-            break;
+               kraken.api('Balance',function(err, available){
+                 if (err) {
+                  throw err;
+                  }
+                 for(var k in available.result){
 
-        default:
-            reply.text('You said \'' + session.message.text + '\'');
-            break;
-    }
+                  var temp = temp +'asset'+[k]+'    ' +available.result[k]+"              ";
+                }
+                  reply.text('Balance in Dollar'+data.result.eb +'   '+'Balance in bitcoin'+doc.result.eb  +'Available balances'+temp);
+                  session.send(reply);
+               });
 
+
+
+
+         });
+
+   });
+
+  else{
+    reply.text('Code not recognised');
     session.send(reply);
+  }
 
 });
 
